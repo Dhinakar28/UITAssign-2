@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Neon To-Do List</title>
+  <style>
+    body {
+      font-family: "Poppins", Arial, sans-serif;
+      padding: 30px;
+      background: #121212; /* Dark background */
+      color: #f1f1f1;
+    }
+
+    h1 {
+      text-align: center;
+      color: #00ffb3; /* Neon green */
+      margin-bottom: 10px;
+      text-shadow: 0 0 8px #00ffb3;
+    }
+
+    #datetime {
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: bold;
+      color: #bb86fc; /* Purple accent */
+      text-shadow: 0 0 5px #bb86fc;
+    }
+
+    .input-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      padding: 12px;
+      width: 60%;
+      font-size: 16px;
+      background-color: #1f1f1f;
+      color: #f1f1f1;
+      border: 2px solid #333;
+      border-radius: 25px;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.5);
+    }
+
+    button {
+      padding: 12px 18px;
+      margin-left: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #00ffb3; /* Neon green button */
+      color: #121212;
+      border: none;
+      border-radius: 25px;
+      transition: background 0.3s, transform 0.2s;
+      box-shadow: 0 0 8px #00ffb3;
+    }
+
+    button:hover {
+      background-color: #00cc8c;
+      transform: translateY(-2px);
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    li {
+      padding: 14px 18px;
+      margin: 10px 0;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 16px;
+      background: #1f1f1f;
+      box-shadow: 0 0 10px rgba(0,255,179,0.15);
+      transition: transform 0.2s, box-shadow 0.3s;
+    }
+
+    li:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 14px rgba(0,255,179,0.25);
+    }
+
+    .completed {
+      background-color: #00ffb3;
+      color: #121212;
+      text-decoration: line-through;
+      border-left: 6px solid #008060;
+    }
+
+    .pending {
+      background-color: #2a1a40; /* Purple tinted */
+      border-left: 6px solid #bb86fc;
+      color: #bb86fc;
+    }
+
+    .task-buttons button {
+      margin-left: 6px;
+      background-color: #333;
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      color: #f1f1f1;
+      box-shadow: none;
+    }
+
+    .task-buttons button:hover {
+      background-color: #555;
+    }
+
+    .filters {
+      margin-top: 25px;
+      text-align: center;
+    }
+
+    .filters button {
+      margin: 0 6px;
+      background: #bb86fc; /* Purple filter buttons */
+      color: #121212;
+      border-radius: 20px;
+      box-shadow: 0 0 6px #bb86fc;
+    }
+
+    .filters button:hover {
+      background: #9a67ea;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>To-Do List</h1>
+  <div id="datetime"></div>
+
+  <div class="input-container">
+    <input type="text" id="taskInput" placeholder="Enter a new task">
+    <button onclick="addTask()">Add Task</button>
+  </div>
+
+  <ul id="taskList"></ul>
+
+  <div class="filters">
+    <button onclick="filterTasks('all')">All</button>
+    <button onclick="filterTasks('completed')">Completed</button>
+    <button onclick="filterTasks('pending')">Pending</button>
+  </div>
+
+  <script>
+    const taskListEl = document.getElementById("taskList");
+    const taskInput = document.getElementById("taskInput");
+    const dateTimeEl = document.getElementById("datetime");
+
+    let tasks = []; 
+    let filter = "all"; 
+
+    function updateDateTime() {
+      const now = new Date();
+      dateTimeEl.textContent = now.toLocaleString();
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+
+    function addTask() {
+      const text = taskInput.value.trim();
+      if (text === "") return;
+
+      const newTask = {
+        id: Date.now(),
+        text,
+        completed: false
+      };
+
+      tasks.push(newTask);
+      taskInput.value = "";
+      renderTasks();
+    }
+
+    function toggleTask(id) {
+      tasks = tasks.map(task => {
+        if (task.id === id) {
+          return { ...task, completed: !task.completed };
+        }
+        return task;
+      });
+      renderTasks();
+    }
+
+    function deleteTask(id) {
+      tasks = tasks.filter(task => task.id !== id);
+      renderTasks();
+    }
+
+    function filterTasks(type) {
+      filter = type;
+      renderTasks();
+    }
+
+    function getFilteredTasks() {
+      if (filter === "completed") {
+        return tasks.filter(task => task.completed);
+      } else if (filter === "pending") {
+        return tasks.filter(task => !task.completed);
+      }
+      return tasks;
+    }
+
+    function renderTasks() {
+      taskListEl.innerHTML = "";
+      const filteredTasks = getFilteredTasks();
+
+      filteredTasks.forEach(task => {
+        const li = document.createElement("li");
+        li.className = task.completed ? "completed" : "pending";
+        li.textContent = task.text;
+
+        const buttonsDiv = document.createElement("div");
+        buttonsDiv.classList.add("task-buttons");
+
+        const toggleBtn = document.createElement("button");
+        toggleBtn.textContent = task.completed ? "Mark Pending" : "Mark Done";
+        toggleBtn.onclick = () => toggleTask(task.id);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Delete";
+        deleteBtn.onclick = () => deleteTask(task.id);
+
+        buttonsDiv.appendChild(toggleBtn);
+        buttonsDiv.appendChild(deleteBtn);
+
+        li.appendChild(buttonsDiv);
+        taskListEl.appendChild(li);
+      });
+    }
+  </script>
+
+</body>
+</html>
